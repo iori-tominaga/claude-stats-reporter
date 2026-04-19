@@ -69,7 +69,8 @@ function doPost(e) {
 
 /**
  * 週次ランキングを Slack に送信する。
- * GAS のトリガーで毎週実行する（例: 毎週月曜 10:00）。
+ * GAS のトリガーで毎週日曜 10:00 に実行する。
+ * 集計期間は前日（土曜）までの 7 日間。
  */
 function sendWeeklyRanking() {
   var webhookUrl = PropertiesService.getScriptProperties().getProperty("SLACK_WEBHOOK_URL");
@@ -84,11 +85,12 @@ function sendWeeklyRanking() {
   var lastRow = sheet.getLastRow();
   if (lastRow <= 1) return;
 
-  // 過去 7 日分の日付範囲を計算
+  // 前日（土曜）までの 7 日間を集計
   var now = new Date();
-  var weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  var startDate = Utilities.formatDate(weekAgo, Session.getScriptTimeZone(), "yyyy-MM-dd");
-  var endDate = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  var yesterday = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+  var weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  var startDate = Utilities.formatDate(weekStart, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  var endDate = Utilities.formatDate(yesterday, Session.getScriptTimeZone(), "yyyy-MM-dd");
 
   var values = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
 
